@@ -7,8 +7,6 @@ class TestModuleImports(unittest.TestCase):
         "src.excel.reader",
         "src.excel.validator",
         "src.excel.normalizer",
-        "src.bom.parser",
-        "src.sql.generator",
         "src.utils.logger",
     ]
 

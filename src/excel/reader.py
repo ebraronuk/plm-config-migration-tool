@@ -1,5 +1,5 @@
-from src.excel.validator import validate_columns
 from src.excel.normalizer import normalize_row
+from src.excel.validator import validate_columns
 from src.utils.logger import setup_logger
 
 logger = setup_logger()
@@ -7,24 +7,24 @@ logger = setup_logger()
 
 def read_excel(file_path, data_only=True):
     """
-    Excel dosyasını okuyup workbook ve sayfa isimlerini döndürür.
+    Excel dosyasini okur, workbook ve sayfa adlarini dondurur.
     """
     try:
         import openpyxl
     except ImportError as exc:
-        raise RuntimeError("Excel dosyalarını okuyabilmek için openpyxl gerekiyor") from exc
+        raise RuntimeError("Excel dosyalarini okuyabilmek icin openpyxl gerekli") from exc
 
     try:
         wb = openpyxl.load_workbook(file_path, data_only=data_only)
-        logger.info("Workbook yüklendi: %s", file_path)
+        logger.info("Workbook yuklendi: %s", file_path)
         return wb, wb.sheetnames
-    except Exception as e:
-        raise RuntimeError(f"Excel okuma hatası: {e}") from e
+    except Exception as exc:
+        raise RuntimeError(f"Excel okuma hatasi: {exc}") from exc
 
 
 def extract_rows(wb, sheet_name=None):
     """
-    İlk satırı başlık kabul ederek seçili sayfayı sözlük listesine çevirir.
+    Ilk satiri baslik kabul ederek secili sayfayi sozluk listesine donusturur.
     """
     sheet = wb[sheet_name] if sheet_name else wb.active
     rows = list(sheet.iter_rows(values_only=True))
@@ -47,24 +47,41 @@ def extract_rows(wb, sheet_name=None):
     return parsed_rows
 
 
-def excel_to_records(file_path, sheet_name=None, required_cols=None, normalize=True):
+def load_sheet_records(file_path, sheet_name=None, required_cols=None, normalize=True):
     """
-    Excel -> kayıt listesi hattı; isteğe bağlı doğrulama ve normalizasyon içerir.
+    Workbook okur, satirlari ceker, zorunlu sutunlari dogrular, degerleri normalize eder ve kayit listesi dondurur.
     """
-    wb, _ = read_excel(file_path)
-    rows = extract_rows(wb, sheet_name=sheet_name)
+    wb, sheet_names = read_excel(file_path)
+    target_sheet = sheet_name or (sheet_names[0] if sheet_names else None)
 
+    if not target_sheet:
+        raise ValueError("Workbook icinde sayfa bulunamadi")
+    if target_sheet not in sheet_names:
+        raise ValueError(f"Sayfa bulunamadi: {target_sheet}")
+
+    rows = extract_rows(wb, sheet_name=target_sheet)
     if not rows:
-        logger.warning("Sayfa içinde satır bulunamadı: '%s'", sheet_name or wb.active.title)
+        logger.warning("Sayfa icinde veri bulunamadi: '%s'", target_sheet)
         return []
 
-    if required_cols:
-        missing = validate_columns(rows, required_cols)
+    normalized_required = [c.strip().upper() for c in required_cols] if required_cols else []
+    if normalized_required:
+        missing = validate_columns(rows, normalized_required)
         if missing:
-            raise ValueError(f"Zorunlu sütunlar eksik: {', '.join(missing)}")
+            raise ValueError(f"Zorunlu sutunlar eksik: {', '.join(missing)}")
 
-    if normalize:
-        rows = [normalize_row(r) for r in rows]
+    normalized_rows = [normalize_row(r) for r in rows] if normalize else rows
+    logger.info("%s kayit hazirlandi (sayfa=%s)", len(normalized_rows), target_sheet)
+    return normalized_rows
 
-    logger.info("%s kayıt hazırlandı: %s", len(rows), file_path)
-    return rows
+
+def excel_to_records(file_path, sheet_name=None, required_cols=None, normalize=True):
+    """
+    Geriye donuk uyum icin load_sheet_records sarmalayicisi.
+    """
+    return load_sheet_records(
+        file_path=file_path,
+        sheet_name=sheet_name,
+        required_cols=required_cols,
+        normalize=normalize,
+    )

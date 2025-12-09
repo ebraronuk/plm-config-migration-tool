@@ -1,14 +1,18 @@
 # PLM Config Migration Tool
 
-Bu araç şu temel hattı sağlar:
-- Excel → JSON dönüşümü
-- Çok seviyeli BOM ayrıştırma
-- SQL taşıma scripti üretimi
+Bu arac su temel hatlari saglar:
+- Excel'den JSON benzeri kayitlara donusum
+- Cok seviyeli BOM ayristirma (gelistirme asamasinda)
+- SQL tasima scripti uretimi
 
-## Mimari Özeti
-- Excel alma: `src/excel/reader.py` workbook yükler, `validator.py` ile doğrulayıp `normalizer.py` ile normalize ederek kayıt listesi oluşturur.
-- BOM ayrıştırma: `src/bom/parser.py` çok seviyeli BOM çözümü için yer tutucudur.
-- SQL üretimi: `src/sql/generator.py` bellekteki kayıtlardan INSERT scripti yazar.
-- Ortak bileşenler: `src/utils/logger.py` paylaşılan logger'ı tanımlar; `config/settings.yaml` beklenen sütunlar gibi varsayılanları taşır.
+## Mimari Akis
+- Pipeline: Excel -> JSON -> BOM -> SQL
+- Excel dosyalari okunur, kayitlar normalize edilir, gerekirse BOM yapisi cozulur ve SQL scriptlerine yazilir.
 
-Proje erken geliştirme aşamasındadır. Daha fazla dokümantasyon eklenecek.
+## Mimari Ozeti
+- Excel alma: `src/excel/reader.py` workbook yukler; `validator.py` ile sutun dogrular; `normalizer.py` ile normalize ederek kayit listesi olusturur.
+- BOM ayristirma: `src/bom/parser.py` cok seviyeli BOM cozumu icin yer tutucudur.
+- SQL uretimi: `src/sql/generator.py` bellekteki kayitlardan INSERT scripti yazar.
+- Ortak bilesenler: `src/utils/logger.py` paylasilan logger'i tanimlar; `config/settings.yaml` beklenen sutunlar gibi varsayilanlari tasir.
+
+Proje erken gelistirme asamasindadir. Daha fazla dokumantasyon eklenecek.
