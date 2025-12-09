@@ -1,0 +1,6 @@
+expected_columns:
+  - PART_NUMBER
+  - DESCRIPTION
+  - QUANTITY
+logging:
+  level: INFO
