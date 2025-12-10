@@ -1,3 +1,4 @@
+from src.config import settings
 from src.excel.normalizer import normalize_row
 from src.excel.validator import validate_columns
 from src.utils.logger import setup_logger
@@ -64,7 +65,8 @@ def load_sheet_records(file_path, sheet_name=None, required_cols=None, normalize
         logger.warning("Sayfa icinde veri bulunamadi: '%s'", target_sheet)
         return []
 
-    normalized_required = [c.strip().upper() for c in required_cols] if required_cols else []
+    required_source = required_cols if required_cols is not None else settings.excel.expected_columns
+    normalized_required = [c.strip().upper() for c in required_source] if required_source else []
     if normalized_required:
         missing = validate_columns(rows, normalized_required)
         if missing:
