@@ -50,7 +50,8 @@ def extract_rows(wb, sheet_name=None):
 
 def load_sheet_records(file_path, sheet_name=None, required_cols=None, normalize=True):
     """
-    Workbook okur, satirlari ceker, zorunlu sutunlari dogrular, degerleri normalize eder ve kayit listesi dondurur.
+    Workbook okur, satirlari ceker, `settings.excel.expected_columns` ile basliklari dogrular,
+    eksik sutunda hata firlatir, beklenmeyen sutunlari loglar, degerleri normalize edip kayit listesi dondurur.
     """
     wb, sheet_names = read_excel(file_path)
     target_sheet = sheet_name or (sheet_names[0] if sheet_names else None)
@@ -65,11 +66,14 @@ def load_sheet_records(file_path, sheet_name=None, required_cols=None, normalize
         logger.warning("Sayfa icinde veri bulunamadi: '%s'", target_sheet)
         return []
 
-    required_source = required_cols if required_cols is not None else settings.excel.expected_columns
-    normalized_required = [c.strip().upper() for c in required_source] if required_source else []
-    if normalized_required:
-        missing = validate_columns(rows, normalized_required)
+    expected_source = required_cols if required_cols is not None else settings.excel.expected_columns
+    normalized_expected = [c.strip().upper() for c in expected_source] if expected_source else []
+    if normalized_expected:
+        missing, unexpected = validate_columns(rows, normalized_expected)
+        if unexpected:
+            logger.warning("Beklenmeyen sutunlar bulundu: %s", ", ".join(unexpected))
         if missing:
+            logger.error("Zorunlu sutunlar eksik: %s", ", ".join(missing))
             raise ValueError(f"Zorunlu sutunlar eksik: {', '.join(missing)}")
 
     normalized_rows = [normalize_row(r) for r in rows] if normalize else rows

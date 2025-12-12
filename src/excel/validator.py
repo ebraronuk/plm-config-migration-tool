@@ -1,14 +1,15 @@
-def validate_columns(rows, required_cols):
+def validate_columns(rows, expected_cols):
     """
-    Gerekli sütunların mevcut olup olmadığını kontrol eder.
-    rows: sözlük listesi
-    required_cols: beklenen sütun adları listesi
+    Beklenen sutunlari dogrular, eksik ve beklenmeyenleri dondurur.
+    rows: sozluk listesi
+    expected_cols: beklenen sutun adlari listesi
     """
-    if not required_cols:
-        return []
-    if not rows:
-        return list(required_cols)
+    if not expected_cols:
+        return [], []
 
-    reference_row = rows[0] if isinstance(rows[0], dict) else {}
-    missing = [c for c in required_cols if c not in reference_row]
-    return missing
+    headers = list(rows[0].keys()) if rows and isinstance(rows[0], dict) else []
+    expected_set = set(expected_cols)
+
+    missing = [c for c in expected_cols if c not in headers]
+    unexpected = [h for h in headers if h not in expected_set]
+    return missing, unexpected
